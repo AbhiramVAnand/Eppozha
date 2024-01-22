@@ -16,15 +16,15 @@ class ApiViewModel : ViewModel() {
     suspend fun GetSchedule(
         departure : String,
         destination  : String,
-        time : String?,
-        restrict : Boolean?
+        time : String,
+        restrict : Boolean
     ): String {
         val api = RetrofitHelper.getInstance().create(BusApi::class.java)
         var res: Response<ApiResponse>? = null
         val coroutineExceptionHandler = CoroutineExceptionHandler{_, throwable ->
             throwable.printStackTrace()
         }
-        res = api.GetSchedule(departure,departure,time,restrict)
+        res = api.GetSchedule(departure,destination,time,restrict)
         Log.e("Response",res.toString())
         return res.toString()
     }

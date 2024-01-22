@@ -1,8 +1,14 @@
 package com.abhiram.eppozha.ui.pages
 
+import android.app.Activity
+import android.app.TimePickerDialog
+import android.os.Build
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,17 +18,30 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AccessTime
+import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material.icons.outlined.Start
+import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,8 +52,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -47,11 +69,22 @@ import com.abhiram.eppozha.ui.theme.OffWhite
 import com.abhiram.eppozha.ui.theme.Purple40
 import com.abhiram.eppozha.viewmodels.ApiViewModel
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
+@RequiresApi(Build.VERSION_CODES.O)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Home(){
-    val viewModel : ApiViewModel = ApiViewModel()
-    var context = LocalContext.current
+    val view = LocalView.current
+
+    if (!view.isInEditMode){
+        SideEffect {
+            val window = (view.context as Activity).window
+            window.statusBarColor = Grey.toArgb()
+            window.navigationBarColor = OffWhite.toArgb()
+        }
+    }
     Box(modifier = Modifier.fillMaxSize(1F)){
         Box(
             modifier = Modifier
@@ -79,7 +112,7 @@ fun Home(){
                     style = MaterialTheme.typography.headlineLarge,
                     color = OffWhite
                 )
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(48.dp))
                 Text(
                     text = "Find Your Bus",
                     style = MaterialTheme.typography.headlineMedium,
@@ -93,7 +126,6 @@ fun Home(){
                 )
             }
         }
-
         Box(
             modifier = Modifier
                 .padding(top = 64.dp)
@@ -107,74 +139,169 @@ fun Home(){
                 .background(OffWhite)
                 .align(Alignment.Center)
 
-        ){
-            Column(
-                modifier = Modifier
-                    .padding(start = 24.dp, top = 46.dp, end = 24.dp, bottom = 46.dp)
-                    .fillMaxWidth(1F)
-            ) {
+        ) {
+            SearchBox()
+        }
+    }
+
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SearchBox(){
+    val viewModel : ApiViewModel = ApiViewModel()
+    var context = LocalContext.current
+    var from by remember {
+        mutableStateOf(TextFieldValue(""))
+    }
+    var to by remember {
+        mutableStateOf(TextFieldValue(""))
+    }
+    var currentTime = LocalDateTime.now()
+    var hour by remember {
+        mutableStateOf(currentTime.hour)
+    }
+    var minute by remember {
+        mutableStateOf(currentTime.minute)
+    }
+    var time = remember {
+        mutableStateOf("$hour : $minute")
+    }
+    val timePickerDialog = TimePickerDialog(
+        context,
+        {
+        _, hour : Int, minute : Int ->
+        time.value = "$hour : $minute"
+        },
+        hour,
+        minute,
+        true
+    )
+
+
+    Column(
+        modifier = Modifier
+            .padding(start = 24.dp, top = 24.dp, end = 24.dp, bottom = 32.dp)
+            .fillMaxWidth(1F)
+    ) {
+        Text(
+            text = "Where are you going?",
+            style = MaterialTheme.typography.headlineSmall,
+            color = Grey
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = from,
+            onValueChange = { from = it},
+            modifier = Modifier.fillMaxWidth(1F),
+            textStyle = TextStyle(
+                color = Grey
+            ),
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                focusedTextColor = Grey,
+                focusedLabelColor = Grey,
+                focusedBorderColor = Grey,
+                unfocusedBorderColor = LightGrey
+            ),
+            label = {
                 Text(
-                    text = "Where are you going?",
-                    style = MaterialTheme.typography.bodyLarge,
+                    text = "From",
                     color = Grey
                 )
-                Spacer(modifier = Modifier.height(20.dp))
-                var from by remember {
-                    mutableStateOf(TextFieldValue(""))
-                }
-                OutlinedTextField(
-                    value = from,
-                    onValueChange = { from = it},
-                    modifier = Modifier.fillMaxWidth(1F),
-                    label = {
-                        Text(
-                            text = "From",
-                            color = Grey
-                        )
-                    }
+            },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Outlined.LocationOn,
+                    contentDescription = "Departure",
+                    tint = Grey
                 )
-                Spacer(modifier = Modifier.height(8.dp))
-                var to by remember {
-                    mutableStateOf(TextFieldValue(""))
-                }
-                OutlinedTextField(
-                    value = to,
-                    onValueChange = { to = it},
-                    modifier = Modifier.fillMaxWidth(1F),
-                    label = {
-                        Text(
-                            text = "To",
-                            color = Grey
-                        )
-                    }
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Button(
-                    onClick = {
-                        if (from.text.isNotEmpty()&&to.text.isNotEmpty()){
-                            viewModel.viewModelScope.launch {
-                                var res = viewModel.GetSchedule(from.text,to.text,null,null)
-                                Toast.makeText(context, res, Toast.LENGTH_SHORT).show()
-                            }
-                        }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth(1F),
-                    shape = RoundedCornerShape(8.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = ButtonBackground, contentColor = OffWhite)
-                ) {
-                    Text(
-                        text = "Get Results",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                }
             }
+        )
+        Spacer(modifier = Modifier.height(8.dp))
 
+        OutlinedTextField(
+            value = to,
+            onValueChange = { to = it},
+            modifier = Modifier.fillMaxWidth(1F),
+            label = {
+                Text(
+                    text = "To",
+                    color = Grey
+                )
+            },
+            textStyle = TextStyle(
+                color = Grey
+            ),
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                focusedTextColor = Grey,
+                focusedLabelColor = Grey,
+                focusedBorderColor = Grey,
+                unfocusedBorderColor = LightGrey
+            ),
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Outlined.LocationOn,
+                    contentDescription = "Destination",
+                    tint = Grey
+                )
+            }
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        OutlinedButton(
+            onClick = {
+                timePickerDialog.show()
+            },
+            modifier = Modifier
+                .fillMaxWidth(1F),
+            shape = RoundedCornerShape(4.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = OffWhite, contentColor = Grey)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(1F)
+                    .padding(start = 0.dp, top = 8.dp, bottom = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start
+            ){
+                Icon(imageVector = Icons.Outlined.AccessTime, contentDescription = "Time", tint = Grey)
+                Spacer(modifier = Modifier.width(16.dp))
+                Text(
+                    text = time.value,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = {
+                if (from.text.isNotEmpty()&&to.text.isNotEmpty()&&time.value.isNotEmpty()){
+                    viewModel.viewModelScope.launch {
+                        var res = viewModel.GetSchedule(from.text, to.text,time.value, true)
+                        Toast.makeText(context, res, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            },
+            modifier = Modifier
+                .fillMaxWidth(1F)
+                .padding(top = 8.dp, bottom = 8.dp),
+            shape = RoundedCornerShape(8.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = ButtonBackground, contentColor = OffWhite)
+        ) {
+            Text(
+                modifier = Modifier
+                    .padding(top = 8.dp, bottom = 8.dp),
+                text = "Get Results",
+                style = MaterialTheme.typography.bodyLarge
+            )
         }
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 @Preview
 fun Preview() {

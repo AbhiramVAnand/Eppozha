@@ -1,5 +1,6 @@
 package com.abhiram.eppozha
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -31,6 +32,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    @SuppressLint("NewApi")
     @Composable
     fun MyAppNavHost(
         navController: NavHostController = rememberNavController(),
@@ -39,6 +41,9 @@ class MainActivity : ComponentActivity() {
         NavHost(navController = navController, startDestination = startDestination){
             composable("home"){
                 Home()
+            }
+            composable("result"){
+
             }
         }
     }
