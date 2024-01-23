@@ -7,7 +7,6 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,14 +19,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccessTime
 import androidx.compose.material.icons.outlined.LocationOn
-import androidx.compose.material.icons.outlined.Start
-import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -35,11 +30,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TimePicker
-import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
@@ -50,32 +41,30 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
+import com.abhiram.eppozha.ui.pages.navigation.Routes
 import com.abhiram.eppozha.ui.theme.ButtonBackground
 import com.abhiram.eppozha.ui.theme.CardBorder
 import com.abhiram.eppozha.ui.theme.Grey
 import com.abhiram.eppozha.ui.theme.LightGrey
 import com.abhiram.eppozha.ui.theme.OffWhite
-import com.abhiram.eppozha.ui.theme.Purple40
 import com.abhiram.eppozha.viewmodels.ApiViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Home(){
+fun Home(viewModel: ApiViewModel, navController: NavHostController){
     val view = LocalView.current
 
     if (!view.isInEditMode){
@@ -140,7 +129,7 @@ fun Home(){
                 .align(Alignment.Center)
 
         ) {
-            SearchBox()
+            SearchBox(viewModel,navController)
         }
     }
 
@@ -149,8 +138,7 @@ fun Home(){
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchBox(){
-    val viewModel : ApiViewModel = ApiViewModel()
+fun SearchBox(viewModel: ApiViewModel, navController: NavHostController){
     var context = LocalContext.current
     var from by remember {
         mutableStateOf(TextFieldValue(""))
@@ -281,8 +269,15 @@ fun SearchBox(){
                 if (from.text.isNotEmpty()&&to.text.isNotEmpty()&&time.value.isNotEmpty()){
                     viewModel.viewModelScope.launch {
                         var res = viewModel.GetSchedule(from.text, to.text,time.value, true)
-                        Toast.makeText(context, res, Toast.LENGTH_SHORT).show()
+                        viewModel.result = res
+                        Toast.makeText(context, res.toString(), Toast.LENGTH_SHORT).show()
+                        if (viewModel.result!!.isSuccessful){
+                            navController.navigate(Routes.Results.route)
+                        }
+//                        TODO : Handle this with a progress loader
                     }
+
+
                 }
             },
             modifier = Modifier
@@ -299,11 +294,4 @@ fun SearchBox(){
             )
         }
     }
-}
-
-@RequiresApi(Build.VERSION_CODES.O)
-@Composable
-@Preview
-fun Preview() {
-    Home()
 }
