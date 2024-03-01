@@ -75,13 +75,7 @@ fun Home(viewModel: ApiViewModel, navController: NavHostController){
         }
     }
     Box(modifier = Modifier.fillMaxSize(1F)){
-        Box(
-            modifier = Modifier
-                .background(OffWhite)
-                .fillMaxHeight(0.6F)
-                .fillMaxWidth(1F)
-                .align(Alignment.BottomCenter)
-        )
+
         Box(
             modifier = Modifier
                 .fillMaxHeight(0.6F)
