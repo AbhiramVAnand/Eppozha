@@ -11,8 +11,8 @@ interface BusApi {
     suspend fun GetSchedule(
         @Query("departure") departure : String,
         @Query("destination") destination : String,
-        @Query("time") time : String?,
-        @Query("restrict") restrict : Boolean?
+        @Query("time") time : String,
+        @Query("restrict") restrict : Boolean
     ) : Response<ApiResponse>
 
 }
